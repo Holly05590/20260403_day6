@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐾 狗狗年齡換算器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f5f0e8;
+      --warm-brown: #3d2b1f;
+      --amber: #c8860a;
+      --amber-light: #e6a820;
+      --glass-bg: rgba(245, 240, 232, 0.18);
+      --glass-border: rgba(245, 240, 232, 0.35);
+      --shadow: rgba(30, 15, 5, 0.45);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #1a0f07;
+      position: relative;
+    }
+
+    /* ── Background ── */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1920&q=85&fit=crop');
+      background-size: cover;
+      background-position: center 35%;
+      z-index: 0;
+    }
+    .bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        rgba(20, 10, 3, 0.72) 0%,
+        rgba(20, 10, 3, 0.25) 45%,
+        rgba(20, 10, 3, 0.08) 100%
+      );
+    }
+
+    /* ── Layout ── */
+    .scene {
+      position: relative;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      align-items: center;
+    }
+
+    /* ── Card ── */
+    .card {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 2.8rem;
+      background: linear-gradient(160deg, rgba(245,240,232,0.17) 0%, rgba(200,134,10,0.08) 100%);
+      backdrop-filter: blur(22px) saturate(1.4);
+      -webkit-backdrop-filter: blur(22px) saturate(1.4);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: 4px 0 48px var(--shadow);
+      overflow-y: auto;
+    }
+
+    /* ── Paw icon ── */
+    .paw-icon {
+      font-size: 2.6rem;
+      margin-bottom: 0.5rem;
+      display: block;
+      animation: float 3.5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
+    }
+
+    .card h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.05rem;
+      color: var(--cream);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.35rem;
+    }
+    .card h1 span {
+      color: var(--amber-light);
+    }
+
+    .tagline {
+      font-size: 0.82rem;
+      color: rgba(245,240,232,0.55);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 2.2rem;
+      font-weight: 300;
+    }
+
+    /* ── Form ── */
+    label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.6);
+      margin-bottom: 0.45rem;
+      font-weight: 500;
+    }
+
+    .input-group {
+      margin-bottom: 1.2rem;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 0.82rem 1rem;
+      background: rgba(245,240,232,0.1);
+      border: 1px solid rgba(245,240,232,0.25);
+      border-radius: 10px;
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      transition: border-color 0.25s, background 0.25s;
+      outline: none;
+    }
+    input[type="date"]:focus {
+      border-color: var(--amber);
+      background: rgba(200,134,10,0.12);
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7) sepia(1) saturate(2) hue-rotate(10deg);
+      cursor: pointer;
+    }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%;
+      padding: 0.9rem;
+      margin-top: 0.4rem;
+      background: linear-gradient(135deg, var(--amber) 0%, var(--amber-light) 100%);
+      color: var(--warm-brown);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      box-shadow: 0 4px 18px rgba(200,134,10,0.4);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(200,134,10,0.55);
+    }
+    .btn:active { transform: translateY(0); }
+
+    /* ── Result ── */
+    .result {
+      margin-top: 2rem;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    .result.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(245,240,232,0.25), transparent);
+      margin-bottom: 1.5rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .result-box {
+      background: rgba(245,240,232,0.08);
+      border: 1px solid rgba(245,240,232,0.18);
+      border-radius: 14px;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--amber), var(--amber-light));
+    }
+
+    .result-box .emoji {
+      font-size: 1.6rem;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    .result-box .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--amber-light);
+      line-height: 1;
+    }
+    .result-box .unit {
+      font-size: 0.72rem;
+      color: rgba(245,240,232,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+    .result-box .label {
+      font-size: 0.8rem;
+      color: rgba(245,240,232,0.7);
+      margin-top: 0.5rem;
+    }
+
+    .life-stage {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      background: rgba(200,134,10,0.12);
+      border-left: 3px solid var(--amber);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.83rem;
+      color: rgba(245,240,232,0.75);
+      line-height: 1.5;
+    }
+    .life-stage strong { color: var(--amber-light); }
+
+    /* ── Credit ── */
+    .credit {
+      margin-top: 1.8rem;
+      font-size: 0.68rem;
+      color: rgba(245,240,232,0.3);
+      line-height: 1.6;
+    }
+    .credit a {
+      color: rgba(200,134,10,0.7);
+      text-decoration: none;
+    }
+    .credit a:hover { color: var(--amber-light); }
+
+    /* ── Error ── */
+    .error {
+      font-size: 0.8rem;
+      color: #ff8a65;
+      margin-top: 0.4rem;
+      display: none;
+    }
+
+    /* ── Right side overlay text ── */
+    .hero-text {
+      padding: 2.5rem 3rem;
+      align-self: flex-end;
+      margin-bottom: 2.5rem;
+      pointer-events: none;
+    }
+    .hero-text p {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.4rem, 3vw, 2.4rem);
+      color: rgba(245,240,232,0.82);
+      font-style: italic;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.6);
+      line-height: 1.4;
+    }
+    .hero-text small {
+      display: block;
+      margin-top: 0.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      color: rgba(245,240,232,0.35);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Photo credit bottom right ── */
+    .photo-credit {
+      position: fixed;
+      bottom: 1rem;
+      right: 1.2rem;
+      font-size: 0.65rem;
+      color: rgba(245,240,232,0.3);
+      z-index: 2;
+    }
+    .photo-credit a { color: rgba(245,240,232,0.4); text-decoration: none; }
+    .photo-credit a:hover { color: rgba(245,240,232,0.7); }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      html, body { overflow: auto; }
+      .scene { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
+      .card { height: auto; border-right: none; border-bottom: 1px solid var(--glass-border); }
+      .hero-text { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="scene">
+  <!-- Left Panel -->
+  <div class="card">
+    <span class="paw-icon">🐾</span>
+    <h1>狗狗<span>年齡</span><br>換算器</h1>
+    <p class="tagline">科學公式 · UC San Diego 研究</p>
+
+    <div class="input-group">
+      <label for="dob">狗狗的出生日期</label>
+      <input type="date" id="dob" max="" />
+      <p class="error" id="err">請選擇一個有效的日期！</p>
+    </div>
+
+    <button class="btn" onclick="calculate()">🐶 計算年齡</button>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="divider"></div>
+      <div class="result-grid">
+        <div class="result-box">
+          <span class="emoji">🐕</span>
+          <div class="num" id="dog-age">—</div>
+          <div class="unit">歲又 <span id="dog-months">0</span> 個月</div>
+          <div class="label">狗狗實際年齡</div>
+        </div>
+        <div class="result-box">
+          <span class="emoji">👤</span>
+          <div class="num" id="human-age">—</div>
+          <div class="unit">人類歲數</div>
+          <div class="label">換算相當於</div>
+        </div>
+      </div>
+      <div class="life-stage" id="life-stage"></div>
+      <div class="credit">
+        換算公式：<strong>16 × ln(狗齡) + 31</strong><br>
+        來源：<a href="https://today.ucsd.edu/story/how-old-is-your-dog-in-human-years-scientists-develop-better-method-than-multiply-by-7" target="_blank">UC San Diego (2019) · Cell Systems</a><br>
+        基於 DNA 甲基化表觀遺傳時鐘研究，104 隻拉布拉多犬樣本。
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: hero text overlaid on dog photo -->
+  <div class="hero-text">
+    <p>"牠的眼神裡<br>藏著整個世界。"</p>
+    <small>Photo · Unsplash · Free to use</small>
+  </div>
+</div>
+
+<div class="photo-credit">
+  Photo by <a href="https://unsplash.com/photos/short-coated-brown-dog-rSF6pn6LRKY" target="_blank">Hiro Takashima</a> on <a href="https://unsplash.com" target="_blank">Unsplash</a>
+</div>
+
+<script>
+  // Set max date to today
+  document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+
+  function getLifeStage(dogYears, humanYears) {
+    if (dogYears < 1)  return { icon: '🍼', text: '<strong>幼犬期</strong>——相當於人類嬰幼兒，正在快速探索世界，充滿好奇心！' };
+    if (dogYears < 2)  return { icon: '🧒', text: '<strong>少年期</strong>——相當於人類青少年，精力充沛，學習能力超強！' };
+    if (dogYears < 4)  return { icon: '🧑', text: '<strong>青壯年期</strong>——相當於人類壯年，正值巔峰，活潑好動！' };
+    if (dogYears < 7)  return { icon: '🧓', text: '<strong>中年期</strong>——相當於人類中壯年，成熟穩重，是最佳陪伴的黃金年代。' };
+    if (dogYears < 10) return { icon: '👴', text: '<strong>熟齡期</strong>——相當於人類熟齡，需要更細心的照護與定期健康檢查。' };
+    return              { icon: '🏆', text: '<strong>銀髮長者</strong>——相當於人類老年，是最需要你的愛與耐心的珍貴時光。' };
+  }
+
+  function calculate() {
+    const dobVal = document.getElementById('dob').value;
+    const err    = document.getElementById('err');
+    const result = document.getElementById('result');
+
+    if (!dobVal) {
+      err.style.display = 'block';
+      result.classList.remove('show');
+      return;
+    }
+    err.style.display = 'none';
+
+    const dob  = new Date(dobVal);
+    const now  = new Date();
+    const diffMs = now - dob;
+
+    if (diffMs <= 0) {
+      err.textContent = '出生日期不能在未來哦！';
+      err.style.display = 'block';
+      result.classList.remove('show');
+      return;
+    }
+    err.textContent = '請選擇一個有效的日期！';
+
+    // Dog age in decimal years
+    const dogAgeYears = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    const dogYearInt  = Math.floor(dogAgeYears);
+    const dogMonths   = Math.floor((dogAgeYears - dogYearInt) * 12);
+
+    // Human age via UCSD formula (valid for dog age > 0)
+    let humanAge;
+    if (dogAgeYears < 0.08) { // < ~1 month, ln undefined territory
+      humanAge = Math.round(dogAgeYears * 52); // rough weeks
+    } else {
+      humanAge = Math.round(16 * Math.log(dogAgeYears) + 31);
+    }
+    humanAge = Math.max(0, humanAge);
+
+    // Update DOM
+    document.getElementById('dog-age').textContent    = dogYearInt;
+    document.getElementById('dog-months').textContent = dogMonths;
+    document.getElementById('human-age').textContent  = humanAge;
+
+    const stage = getLifeStage(dogAgeYears, humanAge);
+    document.getElementById('life-stage').innerHTML =
+      `${stage.icon} ${stage.text}`;
+
+    result.classList.add('show');
+  }
+
+  // Allow Enter key
+  document.getElementById('dob').addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
