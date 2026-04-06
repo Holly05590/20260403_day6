@@ -375,8 +375,9 @@
 </div>
 
 <script>
-  // Set max date to today
-  document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+  const dobInput = document.getElementById('dob');
+  dobInput.max = new Date().toISOString().split('T')[0];
+  const STORAGE_KEY = 'dogAgeCalculatorDob';
 
   function getLifeStage(dogYears, humanYears) {
     if (dogYears < 1)  return { icon: '🍼', text: '<strong>幼犬期</strong>——相當於人類嬰幼兒，正在快速探索世界，充滿好奇心！' };
@@ -387,8 +388,16 @@
     return              { icon: '🏆', text: '<strong>銀髮長者</strong>——相當於人類老年，是最需要你的愛與耐心的珍貴時光。' };
   }
 
+  function saveDob(value) {
+    if (value) {
+      localStorage.setItem(STORAGE_KEY, value);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
   function calculate() {
-    const dobVal = document.getElementById('dob').value;
+    const dobVal = dobInput.value;
     const err    = document.getElementById('err');
     const result = document.getElementById('result');
 
@@ -411,36 +420,54 @@
     }
     err.textContent = '請選擇一個有效的日期！';
 
-    // Dog age in decimal years
+    saveDob(dobVal);
+
     const dogAgeYears = diffMs / (1000 * 60 * 60 * 24 * 365.25);
     const dogYearInt  = Math.floor(dogAgeYears);
     const dogMonths   = Math.floor((dogAgeYears - dogYearInt) * 12);
 
-    // Human age via UCSD formula (valid for dog age > 0)
     let humanAge;
-    if (dogAgeYears < 0.08) { // < ~1 month, ln undefined territory
-      humanAge = Math.round(dogAgeYears * 52); // rough weeks
+    if (dogAgeYears < 0.08) {
+      humanAge = Math.round(dogAgeYears * 52);
     } else {
       humanAge = Math.round(16 * Math.log(dogAgeYears) + 31);
     }
     humanAge = Math.max(0, humanAge);
 
-    // Update DOM
     document.getElementById('dog-age').textContent    = dogYearInt;
     document.getElementById('dog-months').textContent = dogMonths;
     document.getElementById('human-age').textContent  = humanAge;
 
     const stage = getLifeStage(dogAgeYears, humanAge);
-    document.getElementById('life-stage').innerHTML =
-      `${stage.icon} ${stage.text}`;
+    document.getElementById('life-stage').innerHTML = `${stage.icon} ${stage.text}`;
 
     result.classList.add('show');
   }
 
-  // Allow Enter key
-  document.getElementById('dob').addEventListener('keydown', e => {
+  function restoreSavedDob() {
+    const savedDob = localStorage.getItem(STORAGE_KEY);
+    if (!savedDob) return;
+
+    const savedDate = new Date(savedDob);
+    const today = new Date(dobInput.max);
+    if (Number.isNaN(savedDate.getTime()) || savedDate > today) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    dobInput.value = savedDob;
+    calculate();
+  }
+
+  dobInput.addEventListener('change', () => {
+    saveDob(dobInput.value);
+  });
+
+  dobInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') calculate();
   });
+
+  restoreSavedDob();
 </script>
 </body>
 </html>
