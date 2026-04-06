@@ -29,3 +29,15 @@
 
 - UC San Diego 研究：<https://today.ucsd.edu/story/how-old-is-your-dog-in-human-years-scientists-develop-better-method-than-multiply-by-7>
 - 來源為 2019 年 Cell Systems 研究成果。
+
+## 快捷 App 設定
+
+為了讓網頁能在手機上作為快捷 App 使用，請在 `<head>` 區塊中添加以下三行代碼：
+
+```html
+<link rel="icon" type="image/png" href="./icon.png">
+<link rel="apple-touch-icon" href="./icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
+```
+
+這些標籤會設定網頁的圖標，讓使用者能在手機主畫面上建立快捷方式。
